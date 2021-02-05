@@ -1,12 +1,15 @@
 package main
 
 import (
+	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 
 	"github.com/gorilla/mux"
 	"golang.org/x/exp/errors/fmt"
+	"gopkg.in/yaml.v2"
 )
 
 // Server ...
@@ -32,6 +35,16 @@ func (s *Server) ServeReverseProxy(url *url.URL, w http.ResponseWriter, r *http.
 	proxy.ServeHTTP(w, r)
 }
 
+// LoadConfig ...
+func (s *Server) LoadConfig() error {
+	yamlFile, err := ioutil.ReadFile("switchboard.yaml")
+	if err != nil {
+		return err
+	}
+
+	return yaml.Unmarshal(yamlFile, &s.Switchboard)
+}
+
 // RegisterRoutes ...
 func (s *Server) RegisterRoutes() {
 	s.Router.PathPrefix("/").HandlerFunc(
@@ -49,10 +62,11 @@ func (s *Server) RegisterRoutes() {
 func main() {
 	server := Server{
 		Router: mux.NewRouter(),
-		Switchboard: map[string]int{
-			"maxtaylordavi.es": 8000,
-			"products.gallery": 8001,
-		},
+	}
+
+	err := server.LoadConfig()
+	if err != nil {
+		log.Fatalf("failed to load config: %v", err)
 	}
 
 	server.RegisterRoutes()
