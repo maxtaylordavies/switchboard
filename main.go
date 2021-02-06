@@ -1,25 +1,39 @@
 package main
 
 import (
+	"crypto/tls"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 
-	"github.com/gorilla/mux"
+	"golang.org/x/crypto/acme/autocert"
 	"golang.org/x/exp/errors/fmt"
 	"gopkg.in/yaml.v2"
 )
 
 // Server ...
 type Server struct {
-	Router      *mux.Router
+	http.Server
 	Switchboard map[string]int
 }
 
-func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	s.Router.ServeHTTP(w, r)
+func newServer(cm *autocert.Manager) (*Server, error) {
+	var server Server
+	err := server.LoadConfig()
+	if err != nil {
+		return &server, err
+	}
+
+	server.RegisterRoutes()
+	server.Addr = "https"
+
+	server.TLSConfig = &tls.Config{
+		GetCertificate: cm.GetCertificate,
+	}
+
+	return &server, nil
 }
 
 // ServeReverseProxy ...
@@ -47,27 +61,33 @@ func (s *Server) LoadConfig() error {
 
 // RegisterRoutes ...
 func (s *Server) RegisterRoutes() {
-	s.Router.PathPrefix("/").HandlerFunc(
-		func(w http.ResponseWriter, r *http.Request) {
-			url := r.URL
+	mux := http.NewServeMux()
 
-			url.Scheme = "http"
-			url.Host = fmt.Sprintf("localhost:%d", s.Switchboard[url.Host])
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		url := r.URL
 
-			s.ServeReverseProxy(url, w, r)
-		},
-	).Methods("OPTIONS", "POST")
+		log.Println(url)
+
+		url.Scheme = "http"
+		url.Host = fmt.Sprintf("localhost:%d", s.Switchboard[url.Host])
+
+		s.ServeReverseProxy(url, w, r)
+	})
+
+	s.Handler = mux
 }
 
 func main() {
-	server := Server{
-		Router: mux.NewRouter(),
+	certManager := autocert.Manager{
+		Prompt: autocert.AcceptTOS,
+		Cache:  autocert.DirCache("certs"),
 	}
 
-	err := server.LoadConfig()
+	server, err := newServer(&certManager)
 	if err != nil {
-		log.Fatalf("failed to load config: %v", err)
+		log.Fatalf("Failed to create server: %v", err)
 	}
 
-	server.RegisterRoutes()
+	go http.ListenAndServe(":80", certManager.HTTPHandler(nil))
+	log.Fatalf("Failed to start server: %v", server.ListenAndServeTLS("", ""))
 }
