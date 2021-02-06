@@ -69,6 +69,7 @@ func (s *Server) RegisterRoutes() {
 
 		url.Scheme = "http"
 		url.Host = fmt.Sprintf("localhost:%d", s.Switchboard[strings.TrimPrefix(r.Host, "www.")])
+		url.Path = "/"
 
 		s.ServeReverseProxy(url, w, r)
 	})
