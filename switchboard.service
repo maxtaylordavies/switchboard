@@ -1,0 +1,12 @@
+[Unit]
+Description=switchboard
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5s
+ExecStart=/home/pi/go/src/github.com/maxtaylordavies/switchboard/switchboard
+WorkingDirectory=/home/pi/go/src/github.com/maxtaylordavies/switchboard
+
+[Install]
+WantedBy=multi-user.target
