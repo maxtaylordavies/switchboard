@@ -27,7 +27,7 @@ func newServer(cm *autocert.Manager) (*Server, error) {
 	}
 
 	server.RegisterRoutes()
-	server.Addr = "https"
+	server.Addr = ":https"
 
 	server.TLSConfig = &tls.Config{
 		GetCertificate: cm.GetCertificate,
