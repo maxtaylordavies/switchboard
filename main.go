@@ -38,15 +38,15 @@ func newServer(cm *autocert.Manager) (*Server, error) {
 }
 
 // ServeReverseProxy ...
-func (s *Server) ServeReverseProxy(url *url.URL, w http.ResponseWriter, r *http.Request) {
+func (s *Server) ServeReverseProxy(port int, w http.ResponseWriter, r *http.Request) {
 	// create the reverse proxy
-	proxy := httputil.NewSingleHostReverseProxy(url)
-
-	r.URL.Host = url.Host
-	r.URL.Scheme = url.Scheme
+	proxy := httputil.NewSingleHostReverseProxy(&url.URL{
+		Scheme: "http",
+		Host:   fmt.Sprintf("localhost:%d", port),
+		Path:   "/",
+	})
 
 	r.Header.Set("X-Forwarded-Host", r.Header.Get("Host"))
-	r.Host = url.Host
 	proxy.ServeHTTP(w, r)
 }
 
@@ -65,13 +65,8 @@ func (s *Server) RegisterRoutes() {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		url := r.URL
-
-		url.Scheme = "http"
-		url.Host = fmt.Sprintf("localhost:%d", s.Switchboard[strings.TrimPrefix(r.Host, "www.")])
-		url.Path = "/"
-
-		s.ServeReverseProxy(url, w, r)
+		port := s.Switchboard[strings.TrimPrefix(r.Host, "www.")]
+		s.ServeReverseProxy(port, w, r)
 	})
 
 	s.Handler = mux
