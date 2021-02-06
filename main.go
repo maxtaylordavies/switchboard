@@ -66,7 +66,7 @@ func (s *Server) RegisterRoutes() {
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		url := r.URL
 
-		log.Println(url)
+		log.Println(url.Host)
 
 		url.Scheme = "http"
 		url.Host = fmt.Sprintf("localhost:%d", s.Switchboard[url.Host])
