@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"strings"
 
 	"golang.org/x/crypto/acme/autocert"
 	"golang.org/x/exp/errors/fmt"
@@ -66,10 +67,8 @@ func (s *Server) RegisterRoutes() {
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		url := r.URL
 
-		log.Printf("%v", url)
-
 		url.Scheme = "http"
-		url.Host = fmt.Sprintf("localhost:%d", s.Switchboard[url.Host])
+		url.Host = fmt.Sprintf("localhost:%d", s.Switchboard[strings.TrimPrefix(r.Host, "www.")])
 
 		s.ServeReverseProxy(url, w, r)
 	})
