@@ -5,8 +5,8 @@ Description=switchboard
 Type=simple
 Restart=always
 RestartSec=5s
-ExecStart=/home/pi/go/src/github.com/maxtaylordavies/switchboard/switchboard
-WorkingDirectory=/home/pi/go/src/github.com/maxtaylordavies/switchboard
+ExecStart=/home/pi/code/switchboard/switchboard
+WorkingDirectory=/home/pi/code/switchboard
 
 [Install]
 WantedBy=multi-user.target
