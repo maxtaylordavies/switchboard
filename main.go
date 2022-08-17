@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/tls"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -10,7 +11,6 @@ import (
 	"strings"
 
 	"golang.org/x/crypto/acme/autocert"
-	"golang.org/x/exp/errors/fmt"
 	"gopkg.in/yaml.v2"
 )
 
