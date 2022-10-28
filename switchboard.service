@@ -5,8 +5,8 @@ Description=switchboard
 Type=simple
 Restart=always
 RestartSec=5s
-ExecStart=/home/pi/code/switchboard/switchboard
-WorkingDirectory=/home/pi/code/switchboard
+ExecStart=/root/code/switchboard/switchboard
+WorkingDirectory=/root/code/switchboard
 
 [Install]
 WantedBy=multi-user.target
